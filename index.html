@@ -175,7 +175,7 @@
 <header>
   <p class="eyebrow">Special Intensive Revision 2026</p>
   <h1>Addl. AERO Daily Progress Tracker</h1>
-  <p>Daily entry: notices &amp; documents (total till today) and cases hearing concluded today ("No Mapping" + "Logical Discrepancy").</p>
+  <p>Daily entry of totals till today: notices, documents, and cases hearing concluded ("No Mapping" + "Logical Discrepancy").</p>
 </header>
 
 <main>
@@ -222,18 +222,20 @@
       </div>
     </div>
 
-    <div class="section-title">NUMBER OF CASES HEARING CONCLUDED BY EROs / AEROs / ADDL. AEROs (TODAY)</div>
+    <div class="section-title">NUMBER OF CASES HEARING CONCLUDED BY EROs / AEROs / ADDL. AEROs (TOTAL TILL TODAY)</div>
     <div class="card">
       <div class="field count-field" id="nmField">
-        <label for="nmInput">How many "No Mapping" cases sent to DEO login today?</label>
-        <input type="number" id="nmInput" min="0" step="1" inputmode="numeric" placeholder="Enter number (0 if none)" />
+        <label for="nmInput">How many "No Mapping" cases sent to DEO login till today?</label>
+        <input type="number" id="nmInput" min="0" step="1" inputmode="numeric" placeholder="Enter total till today (0 if none)" />
+        <div class="last-saved hidden" id="nmLast"></div>
       </div>
       <div class="field count-field" id="ldField">
-        <label for="ldInput">How many "Logical Discrepancy" cases disposed off today?</label>
-        <input type="number" id="ldInput" min="0" step="1" inputmode="numeric" placeholder="Enter number (0 if none)" />
+        <label for="ldInput">How many "Logical Discrepancy" cases disposed off till today?</label>
+        <input type="number" id="ldInput" min="0" step="1" inputmode="numeric" placeholder="Enter total till today (0 if none)" />
+        <div class="last-saved hidden" id="ldLast"></div>
       </div>
       <div class="today-total">
-        <span>Hearing concluded today (No Mapping + Logical Discrepancy)</span>
+        <span>Hearing concluded till today (No Mapping + Logical Discrepancy)</span>
         <b id="todayTotal">0</b>
       </div>
       <div class="soft-warn hidden" id="softWarn"></div>
@@ -250,7 +252,7 @@
 </div>
 
 <footer>
-  Notices &amp; documents figures are the total till today. Hearing concluded figures are for today only. Data is recorded against today's date automatically. If you save again today, your earlier entry for today is replaced.
+  All figures are the total till today (not just today's work). Data is recorded against today's date automatically. If you save again today, your earlier entry for today is replaced.
   <button type="button" class="admin-link" id="openAdminBtn">Admin</button>
 </footer>
 
@@ -442,7 +444,7 @@ aeroSelect.addEventListener("change", () => {
   hideBanner();
   genInput.value = a.gen;
   [delInput, docInput].forEach((i) => { i.value = ""; });
-  ["delLast", "docLast"].forEach((id) => document.getElementById(id).classList.add("hidden"));
+  ["delLast", "docLast", "nmLast", "ldLast"].forEach((id) => document.getElementById(id).classList.add("hidden"));
   refreshForm();
   loadLastSaved(a);
 });
@@ -461,7 +463,7 @@ async function loadLastSaved(a) {
     if (e.generated !== null && e.generated !== undefined && String(genInput.value) === String(a.gen)) {
       genInput.value = e.generated;
     }
-    [["delLast", e.delivered], ["docLast", e.docs]].forEach(([id, v]) => {
+    [["delLast", e.delivered], ["docLast", e.docs], ["nmLast", e.noMapping], ["ldLast", e.logical]].forEach(([id, v]) => {
       if (v === null || v === undefined) return;
       const el = document.getElementById(id);
       el.innerHTML = `Last saved (${esc(on)}): <b>${esc(v)}</b>`;
@@ -541,8 +543,8 @@ function lockFormAfterSubmit(a, savedIsoDate, payload) {
       ${esc(a.name)}, Addl. AERO (${esc(a.ps)}) — ${esc(savedDisplay)}<br/>
       Notices generated till today: <b>${payload.noticesGenerated}</b> · Delivered till today: <b>${payload.noticesDelivered}</b> ·
       Documents collected &amp; uploaded till today: <b>${payload.docsUploaded}</b><br/>
-      Hearing concluded today: <b>${payload.hearingConcluded}</b>
-      (No Mapping sent to DEO: <b>${payload.noMapping}</b> + Logical Discrepancy disposed: <b>${payload.logicalDisposed}</b>)<br/>
+      Hearing concluded till today: <b>${payload.hearingConcluded}</b>
+      (No Mapping sent to DEO till today: <b>${payload.noMapping}</b> + Logical Discrepancy disposed till today: <b>${payload.logicalDisposed}</b>)<br/>
       Your entry has been saved. This form is now locked for this session to prevent an accidental duplicate submission.
     </div>`;
   aeroSelect.disabled = true;
@@ -617,18 +619,18 @@ async function withBusy(btn, fn) {
   }
 }
 
-/* Report columns for each date. "daily" ones are today's counts (summed over
-   a period); the rest are cumulative status figures (latest value is used). */
+/* Report columns for each date. All figures are totals till the date of entry;
+   "Latest in period" shows the most recent value per AERO. */
 const COLS = [
   { k: "gen",  head: "NUMBER OF NOTICES GENERATED TILL TODAY",                                  short: "NOTICES GENERATED" },
   { k: "del",  head: "NUMBER OF CASES IN WHICH NOTICES WERE DELIVERED TO ELECTORS TILL TODAY",  short: "NOTICES DELIVERED" },
   { k: "docs", head: "NUMBER OF CASES IN WHICH DOCUMENTS COLLECTED & UPLOADED BY BLO TILL TODAY", short: "DOCS COLLECTED & UPLOADED" },
-  { k: "nm",   head: 'HEARING CONCLUDED: "NO MAPPING" CASES SENT TO DEO LOGIN',      short: '"NO MAPPING" SENT TO DEO',    daily: true },
-  { k: "ld",   head: 'HEARING CONCLUDED: "LOGICAL DISCREPANCY" CASES DISPOSED OFF',  short: '"LOGICAL DISCREP." DISPOSED', daily: true },
-  { k: "tot",  head: "NUMBER OF CASES HEARING CONCLUDED BY EROs / AEROs / ADDL. AEROs (TOTAL)", short: "HEARING CONCLUDED (TOTAL)", daily: true },
+  { k: "nm",   head: 'HEARING CONCLUDED: "NO MAPPING" CASES SENT TO DEO LOGIN TILL TODAY',     short: '"NO MAPPING" SENT TO DEO' },
+  { k: "ld",   head: 'HEARING CONCLUDED: "LOGICAL DISCREPANCY" CASES DISPOSED OFF TILL TODAY', short: '"LOGICAL DISCREP." DISPOSED' },
+  { k: "tot",  head: "NUMBER OF CASES HEARING CONCLUDED BY EROs / AEROs / ADDL. AEROs TILL TODAY (TOTAL)", short: "HEARING CONCLUDED (TOTAL)" },
 ];
 const NC = COLS.length;
-const SUMMARY_NOTE = "Period summary: Hearing Concluded (No Mapping + Logical Discrepancy) is added up over the period; Notices Generated, Notices Delivered and Documents Collected & Uploaded show the latest figure reported in the period.";
+const SUMMARY_NOTE = "All figures are totals till the date of entry. \"Latest in period\" shows each AERO's most recent figures reported within the selected period.";
 
 const nOrNull = (v) => (v === null || v === undefined || v === "") ? null : Number(v);
 const sumOrNull = (vals) => vals.some((v) => v !== null) ? vals.reduce((t, v) => t + (v || 0), 0) : null;
@@ -678,7 +680,7 @@ function reportGroups(m) {
     rowVals: (r) => r.perDate[i], totVals: m.colTotals[i],
   }));
   if (m.dates.length > 1) g.push({
-    label: "PERIOD SUMMARY", isTotal: true,
+    label: "LATEST IN PERIOD", isTotal: true,
     rowVals: (r) => r.summary, totVals: m.grand,
   });
   return g;
@@ -996,9 +998,9 @@ $("rawBtn").addEventListener("click", (e) => withBusy(e.currentTarget, async () 
     { header: "School", key: "school", width: 44 },
     { header: "PS Number", key: "ps", width: 22 },
     { header: "Mobile", key: "mobile", width: 14 },
-    { header: '"No Mapping" Sent to DEO', key: "nm", width: 16 },
-    { header: '"Logical Discrepancy" Disposed', key: "ld", width: 18 },
-    { header: "Hearing Concluded (Total)", key: "tot", width: 14 },
+    { header: '"No Mapping" Sent to DEO till today', key: "nm", width: 16 },
+    { header: '"Logical Discrepancy" Disposed till today', key: "ld", width: 18 },
+    { header: "Hearing Concluded till today (Total)", key: "tot", width: 14 },
     { header: "Number of Notices Generated till today", key: "gen", width: 14 },
     { header: "Notices Delivered to Electors till today", key: "del", width: 14 },
     { header: "Documents Collected & Uploaded by BLO till today", key: "docs", width: 16 },
