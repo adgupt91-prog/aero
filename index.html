@@ -81,6 +81,10 @@
     border-top:1px solid var(--line); padding-top:12px; margin-top:4px;
     font-size:13.5px; color:var(--ink-soft);
   }
+  .last-saved{font-size:12px; color:var(--ink-soft); margin-top:5px;}
+  .last-saved b{color:var(--ink); font-family:'IBM Plex Mono', monospace;}
+  .soft-warn{font-size:12.5px; color:var(--warn); background:var(--warn-bg); border:1px solid #e6c4b3;
+    border-radius:var(--radius); padding:9px 11px; margin-top:4px; line-height:1.45;}
   .today-total b{font-size:20px; color:var(--ink); font-family:'IBM Plex Mono', monospace;}
 
   .submit-bar{max-width:640px; margin:6px auto 0; padding:0 16px;}
@@ -171,7 +175,7 @@
 <header>
   <p class="eyebrow">Special Intensive Revision 2026</p>
   <h1>Addl. AERO Daily Progress Tracker</h1>
-  <p>Daily entry: "No Mapping" cases sent to DEO login and "Logical Discrepancy" cases disposed off.</p>
+  <p>Daily entry: "No Mapping" / "Logical Discrepancy" cases for today, and hearing centre status (notices, documents, hearings) till today.</p>
 </header>
 
 <main>
@@ -214,6 +218,31 @@
         <b id="todayTotal">0</b>
       </div>
     </div>
+
+    <div class="section-title">HEARING CENTRE STATUS (TOTAL TILL TODAY)</div>
+    <div class="card">
+      <div class="field count-field" id="genField">
+        <label for="genInput">Number of notices generated</label>
+        <input type="number" id="genInput" min="0" step="1" inputmode="numeric" placeholder="Enter number" />
+        <div class="hint">Pre-filled. Change it only if the figure has changed.</div>
+      </div>
+      <div class="field count-field" id="delField">
+        <label for="delInput">Number of cases in which notices were delivered to electors</label>
+        <input type="number" id="delInput" min="0" step="1" inputmode="numeric" placeholder="Enter total till today" />
+        <div class="last-saved hidden" id="delLast"></div>
+      </div>
+      <div class="field count-field" id="docField">
+        <label for="docInput">Number of cases in which documents collected &amp; uploaded by BLO</label>
+        <input type="number" id="docInput" min="0" step="1" inputmode="numeric" placeholder="Enter total till today" />
+        <div class="last-saved hidden" id="docLast"></div>
+      </div>
+      <div class="field count-field" id="hrField">
+        <label for="hrInput">Number of cases hearing concluded by EROs / AEROs / Addl. AEROs</label>
+        <input type="number" id="hrInput" min="0" step="1" inputmode="numeric" placeholder="Enter total till today" />
+        <div class="last-saved hidden" id="hrLast"></div>
+      </div>
+      <div class="soft-warn hidden" id="softWarn"></div>
+    </div>
   </div>
 </main>
 
@@ -226,7 +255,7 @@
 </div>
 
 <footer>
-  Enter only today's figures (not a running total). Data is recorded against today's date automatically. If you save again today, your earlier entry for today is replaced.
+  "Today's figures" are for today only. "Hearing centre status" figures are the total till today. Data is recorded against today's date automatically. If you save again today, your earlier entry for today is replaced.
   <button type="button" class="admin-link" id="openAdminBtn">Admin</button>
 </footer>
 
@@ -304,18 +333,18 @@ const ADMIN_PASSWORD = "1111";
 
 /* ---- AERO DATA (must match AEROS in Code.gs) ---- */
 const AEROS = [
-  { sno: 1,  name: "Dr. Sabya Sachin",           ps: "PS-1 to 15",              psCount: 15, mobile: "9868564747", school: "Govt. Boys Senior Secondary School, Prem Nagar (School ID-1516013)" },
-  { sno: 2,  name: "Ms. Vandana Sharma",         ps: "PS-16 to 30",             psCount: 15, mobile: "9811749486", school: "Govt. Girls Senior Secondary School, Prem Nagar (School ID-1516030)" },
-  { sno: 3,  name: "Sh. Hansraj Meena",         ps: "PS-31 to 45 & 121-125",   psCount: 20, mobile: "9818750816", school: "Voter Centre, AC-24, Patel Nagar, B-Block New Ranjit Nagar, New Delhi" },
-  { sno: 4,  name: "Sh. Ramkumar Singh Chauhan", ps: "PS-46 to 60",             psCount: 15, mobile: "7532995006", school: "G.B.S.S.S., West Patel Nagar (School ID-1516140)" },
-  { sno: 5,  name: "Ms. Ekpreet Kaur",           ps: "PS-61 to 75",             psCount: 15, mobile: "9868377286", school: "GGSSS, West Patel Nagar (School ID-1516141)" },
-  { sno: 6,  name: "Sh. Jaya Krushna Swain",     ps: "PS-76 to 90",             psCount: 15, mobile: "9136837745", school: "Govt. Sarvodaya Bal Vidyalaya, West Patel Nagar (School ID-1516143)" },
-  { sno: 7,  name: "Ms. Seema Shrivastava",      ps: "PS-91 to 105",            psCount: 15, mobile: "9868389411", school: "SKV, West Patel Nagar (School ID-1516142)" },
-  { sno: 8,  name: "Ms. Suman Sharma",           ps: "PS-106 to 120 & 141-145", psCount: 20, mobile: "9810193970", school: "SKV Ranjit Nagar" },
-  { sno: 9,  name: "Sh. Jai Bhagwan",            ps: "PS-126 to 140",           psCount: 15, mobile: "9466665381", school: "Food & Supply Office, Circle-24, B-Block New Ranjit Nagar, New Delhi" },
-  { sno: 10, name: "Sh. Narendra Singh",         ps: "PS-146 to 160",           psCount: 15, mobile: "9818822624", school: "Sarvodaya Bal Vidyalaya, Shadi Khampur (School ID-1516011)" },
-  { sno: 11, name: "Ms. Anupama Taneja",         ps: "PS-161 to 175",           psCount: 15, mobile: "9810444610", school: "SKV, Ranjit Nagar (School ID-1516021)" },
-  { sno: 12, name: "Ms. Rajni Gupta",            ps: "PS-176 to 190",           psCount: 15, mobile: "9910278907", school: "SKV, Shadi Khampur (School ID-1516022)" },
+  { sno: 1,  name: "Dr. Sabya Sachin",           ps: "PS-1 to 15",              psCount: 15, gen: 2518, mobile: "9868564747", school: "Govt. Boys Senior Secondary School, Prem Nagar (School ID-1516013)" },
+  { sno: 2,  name: "Ms. Vandana Sharma",         ps: "PS-16 to 30",             psCount: 15, gen: 2911, mobile: "9811749486", school: "Govt. Girls Senior Secondary School, Prem Nagar (School ID-1516030)" },
+  { sno: 3,  name: "Sh. Hansraj Meena",         ps: "PS-31 to 45 & 121-125",   psCount: 20, gen: 3859, mobile: "9818750816", school: "Voter Centre, AC-24, Patel Nagar, B-Block New Ranjit Nagar, New Delhi" },
+  { sno: 4,  name: "Sh. Ramkumar Singh Chauhan", ps: "PS-46 to 60",             psCount: 15, gen: 3325, mobile: "7532995006", school: "G.B.S.S.S., West Patel Nagar (School ID-1516140)" },
+  { sno: 5,  name: "Ms. Ekpreet Kaur",           ps: "PS-61 to 75",             psCount: 15, gen: 2843, mobile: "9868377286", school: "GGSSS, West Patel Nagar (School ID-1516141)" },
+  { sno: 6,  name: "Sh. Jaya Krushna Swain",     ps: "PS-76 to 90",             psCount: 15, gen: 3298, mobile: "9136837745", school: "Govt. Sarvodaya Bal Vidyalaya, West Patel Nagar (School ID-1516143)" },
+  { sno: 7,  name: "Ms. Seema Shrivastava",      ps: "PS-91 to 105",            psCount: 15, gen: 3810, mobile: "9868389411", school: "SKV, West Patel Nagar (School ID-1516142)" },
+  { sno: 8,  name: "Ms. Suman Sharma",           ps: "PS-106 to 120 & 141-145", psCount: 20, gen: 4242, mobile: "9810193970", school: "SKV Ranjit Nagar" },
+  { sno: 9,  name: "Sh. Jai Bhagwan",            ps: "PS-126 to 140",           psCount: 15, gen: 2300, mobile: "9466665381", school: "Food & Supply Office, Circle-24, B-Block New Ranjit Nagar, New Delhi" },
+  { sno: 10, name: "Sh. Narendra Singh",         ps: "PS-146 to 160",           psCount: 15, gen: 3033, mobile: "9818822624", school: "Sarvodaya Bal Vidyalaya, Shadi Khampur (School ID-1516011)" },
+  { sno: 11, name: "Ms. Anupama Taneja",         ps: "PS-161 to 175",           psCount: 15, gen: 2768, mobile: "9810444610", school: "SKV, Ranjit Nagar (School ID-1516021)" },
+  { sno: 12, name: "Ms. Rajni Gupta",            ps: "PS-176 to 190",           psCount: 15, gen: 3048, mobile: "9910278907", school: "SKV, Shadi Khampur (School ID-1516022)" },
 ];
 const AERO_BY_SNO = Object.fromEntries(AEROS.map((a) => [a.sno, a]));
 
@@ -350,6 +379,17 @@ const ldInput = document.getElementById("ldInput");
 const nmField = document.getElementById("nmField");
 const ldField = document.getElementById("ldField");
 const todayTotal = document.getElementById("todayTotal");
+const genInput = document.getElementById("genInput");
+const delInput = document.getElementById("delInput");
+const docInput = document.getElementById("docInput");
+const hrInput = document.getElementById("hrInput");
+const softWarn = document.getElementById("softWarn");
+const COUNT_FIELDS = [
+  [nmInput, nmField], [ldInput, ldField],
+  [genInput, document.getElementById("genField")], [delInput, document.getElementById("delField")],
+  [docInput, document.getElementById("docField")], [hrInput, document.getElementById("hrField")],
+];
+let prefillSeq = 0;
 const submitBtn = document.getElementById("submitBtn");
 const banner = document.getElementById("banner");
 const bannerInner = document.getElementById("bannerInner");
@@ -366,18 +406,31 @@ AEROS.forEach((a) => {
 const isCount = (v) => /^\d+$/.test(String(v).trim());
 
 function refreshForm() {
-  const nmOk = isCount(nmInput.value);
-  const ldOk = isCount(ldInput.value);
-  nmField.classList.toggle("invalid", nmInput.value !== "" && !nmOk);
-  ldField.classList.toggle("invalid", ldInput.value !== "" && !ldOk);
+  let allOk = true;
+  COUNT_FIELDS.forEach(([input, field]) => {
+    const ok = isCount(input.value);
+    field.classList.toggle("invalid", input.value !== "" && !ok);
+    if (!ok) allOk = false;
+  });
+  const nmOk = isCount(nmInput.value), ldOk = isCount(ldInput.value);
   todayTotal.textContent = (nmOk ? Number(nmInput.value) : 0) + (ldOk ? Number(ldInput.value) : 0);
+
+  // Non-blocking sanity checks on the cumulative figures.
+  const n = (i) => isCount(i.value) ? Number(i.value) : null;
+  const g = n(genInput), d = n(delInput), dc = n(docInput), hr = n(hrInput);
+  const warns = [];
+  if (g !== null && d !== null && d > g) warns.push("Notices delivered is more than notices generated.");
+  if (d !== null && dc !== null && dc > d) warns.push("Documents collected &amp; uploaded is more than notices delivered.");
+  if (dc !== null && hr !== null && hr > dc) warns.push("Hearing concluded is more than documents collected &amp; uploaded.");
+  softWarn.innerHTML = warns.length ? "Please re-check: " + warns.join(" ") + " You can still save if the figures are correct." : "";
+  softWarn.classList.toggle("hidden", warns.length === 0);
 
   if (aeroSelect.value === "") {
     submitBtn.disabled = true;
     submitBtn.textContent = "Select your name to continue";
-  } else if (!nmOk || !ldOk) {
+  } else if (!allOk) {
     submitBtn.disabled = true;
-    submitBtn.textContent = "Enter both numbers to continue (0 if none)";
+    submitBtn.textContent = "Fill all 6 numbers to continue (0 if none)";
   } else {
     submitBtn.disabled = false;
     submitBtn.textContent = "Save today's entry";
@@ -394,10 +447,36 @@ aeroSelect.addEventListener("change", () => {
   aeroInfo.classList.remove("hidden");
   entrySection.classList.remove("hidden");
   hideBanner();
+  genInput.value = a.gen;
+  [delInput, docInput, hrInput].forEach((i) => { i.value = ""; });
+  ["delLast", "docLast", "hrLast"].forEach((id) => document.getElementById(id).classList.add("hidden"));
   refreshForm();
+  loadLastSaved(a);
 });
-nmInput.addEventListener("input", refreshForm);
-ldInput.addEventListener("input", refreshForm);
+COUNT_FIELDS.forEach(([input]) => input.addEventListener("input", refreshForm));
+
+/* Show this AERO's last saved figures, and use their last "notices generated". */
+async function loadLastSaved(a) {
+  const seq = ++prefillSeq;
+  if (!SCRIPT_URL || SCRIPT_URL.indexOf("PASTE_YOUR") === 0) return;
+  try {
+    const res = await fetch(SCRIPT_URL + "?latest=" + a.sno);
+    const data = await res.json();
+    if (seq !== prefillSeq || !data || !data.ok || !data.entry) return;
+    const e = data.entry;
+    const on = e.date ? e.date.split("-").reverse().join("-") : "";
+    if (e.generated !== null && e.generated !== undefined && String(genInput.value) === String(a.gen)) {
+      genInput.value = e.generated;
+    }
+    [["delLast", e.delivered], ["docLast", e.docs], ["hrLast", e.hearing]].forEach(([id, v]) => {
+      if (v === null || v === undefined) return;
+      const el = document.getElementById(id);
+      el.innerHTML = `Last saved (${esc(on)}): <b>${esc(v)}</b>`;
+      el.classList.remove("hidden");
+    });
+    refreshForm();
+  } catch (err) { /* pre-fill is optional; the form still works */ }
+}
 
 function showBanner(type, message) {
   banner.classList.remove("hidden");
@@ -408,7 +487,7 @@ function hideBanner() { banner.classList.add("hidden"); }
 
 submitBtn.addEventListener("click", async () => {
   const a = AERO_BY_SNO[Number(aeroSelect.value)];
-  if (!a || !isCount(nmInput.value) || !isCount(ldInput.value)) { refreshForm(); return; }
+  if (!a || COUNT_FIELDS.some(([i]) => !isCount(i.value))) { refreshForm(); return; }
 
   if (!SCRIPT_URL || SCRIPT_URL.indexOf("PASTE_YOUR") === 0) {
     showBanner("error", "Setup incomplete: the data destination hasn't been configured yet. Contact the administrator.");
@@ -420,6 +499,10 @@ submitBtn.addEventListener("click", async () => {
     name: a.name,
     noMapping: Number(nmInput.value),
     logicalDisposed: Number(ldInput.value),
+    noticesGenerated: Number(genInput.value),
+    noticesDelivered: Number(delInput.value),
+    docsUploaded: Number(docInput.value),
+    hearingConcluded: Number(hrInput.value),
   };
 
   submitBtn.disabled = true;
@@ -464,11 +547,12 @@ function lockFormAfterSubmit(a, savedIsoDate, payload) {
     <div class="submitted-sub">
       ${esc(a.name)}, Addl. AERO (${esc(a.ps)}) — ${esc(savedDisplay)}<br/>
       No Mapping sent to DEO: <b>${payload.noMapping}</b> · Logical Discrepancy disposed: <b>${payload.logicalDisposed}</b><br/>
+      Notices generated: <b>${payload.noticesGenerated}</b> · Delivered: <b>${payload.noticesDelivered}</b> ·
+      Documents collected &amp; uploaded: <b>${payload.docsUploaded}</b> · Hearing concluded: <b>${payload.hearingConcluded}</b><br/>
       Your entry has been saved. This form is now locked for this session to prevent an accidental duplicate submission.
     </div>`;
   aeroSelect.disabled = true;
-  nmInput.disabled = true;
-  ldInput.disabled = true;
+  COUNT_FIELDS.forEach(([i]) => { i.disabled = true; });
   submitBtn.disabled = true;
   submitBtn.textContent = "Submitted ✓";
 }
@@ -504,10 +588,19 @@ $("loginBtn").addEventListener("click", () => {
 });
 
 async function fetchEntries(params) {
-  const res = await fetch(SCRIPT_URL + "?" + new URLSearchParams(params).toString());
-  const data = await res.json();
-  if (!data || data.ok === false) throw new Error((data && data.error) || "Unknown error");
-  return data.entries || [];
+  let res;
+  try {
+    res = await fetch(SCRIPT_URL + "?" + new URLSearchParams(params).toString());
+  } catch (e) {
+    throw new Error("Could not reach the Apps Script web app (network blocked, or the deployment's access is not set to \"Anyone\").");
+  }
+  const text = await res.text();
+  let data;
+  try { data = JSON.parse(text); }
+  catch (e) { throw new Error("Apps Script did not return data (HTTP " + res.status + "). The deployment URL may be old/archived, or access is not \"Anyone\"."); }
+  if (!data || data.ok === false) throw new Error("Apps Script error: " + ((data && data.error) || "Unknown error"));
+  if (!Array.isArray(data.entries)) throw new Error("The web app replied, but not with AERO data. Is the AERO Code.gs deployed at this URL (not the BLO one)? Reply was: " + text.slice(0, 120));
+  return data.entries;
 }
 
 function msg(text, isErr) {
@@ -523,35 +616,82 @@ async function withBusy(btn, fn) {
   try {
     await fn();
   } catch (err) {
-    msg("Could not load data. Check your connection and try again.", true);
+    msg("Could not load data. " + (err && err.message ? err.message : "Check your connection and try again."), true);
   } finally {
     btn.disabled = false;
     btn.textContent = label;
   }
 }
 
+/* Report columns for each date. "daily" ones are today's counts (summed over
+   a period); the rest are cumulative status figures (latest value is used). */
+const COLS = [
+  { k: "nm",   head: '"NO MAPPING" CASES SENT TO DEO LOGIN',          short: '"NO MAPPING" SENT TO DEO',   daily: true },
+  { k: "ld",   head: '"LOGICAL DISCREPANCY" CASES DISPOSED OFF',       short: '"LOGICAL DISCREP." DISPOSED', daily: true },
+  { k: "tot",  head: "TOTAL (NO MAPPING + LOGICAL DISCREPANCY)",       short: "TOTAL",                      daily: true },
+  { k: "gen",  head: "NUMBER OF NOTICES GENERATED",                    short: "NOTICES GENERATED" },
+  { k: "del",  head: "NOTICES DELIVERED TO ELECTORS",                  short: "NOTICES DELIVERED" },
+  { k: "docs", head: "DOCUMENTS COLLECTED & UPLOADED BY BLO",          short: "DOCS COLLECTED & UPLOADED" },
+  { k: "hr",   head: "HEARING CONCLUDED BY ERO / AERO / ADDL. AERO",   short: "HEARING CONCLUDED" },
+];
+const NC = COLS.length;
+const SUMMARY_NOTE = "Period summary: No Mapping, Logical Discrepancy and Total are added up over the period; Notices Generated, Notices Delivered, Documents Collected & Uploaded and Hearing Concluded show the latest figure reported in the period.";
+
+const nOrNull = (v) => (v === null || v === undefined || v === "") ? null : Number(v);
+const sumOrNull = (vals) => vals.some((v) => v !== null) ? vals.reduce((t, v) => t + (v || 0), 0) : null;
+const cellText = (v) => (v === null || v === undefined) ? "" : v;
+
+function toCell(e) {
+  const nm = Number(e.noMapping) || 0, ld = Number(e.logical) || 0;
+  return { nm, ld, tot: nm + ld,
+    gen: nOrNull(e.generated), del: nOrNull(e.delivered), docs: nOrNull(e.docs), hr: nOrNull(e.hearing) };
+}
+
 /* Builds the AERO x Date matrix used by every report. */
 function buildMatrix(entries, from, to) {
   const dates = [...new Set(entries.map((e) => e.date))].sort();
   const cell = {};
-  entries.forEach((e) => {
-    cell[e.date + "|" + e.sno] = { nm: Number(e.noMapping) || 0, ld: Number(e.logical) || 0 };
-  });
+  entries.forEach((e) => { cell[e.date + "|" + e.sno] = toCell(e); });
   const rows = AEROS.map((a) => {
     const perDate = dates.map((d) => cell[d + "|" + a.sno] || null);
-    const tNm = perDate.reduce((t, c) => t + (c ? c.nm : 0), 0);
-    const tLd = perDate.reduce((t, c) => t + (c ? c.ld : 0), 0);
-    return { aero: a, perDate, tNm, tLd };
+    const filled = perDate.filter(Boolean);
+    let summary = null;
+    if (filled.length) {
+      summary = {};
+      COLS.forEach((c) => {
+        if (c.daily) summary[c.k] = filled.reduce((t, x) => t + x[c.k], 0);
+        else {
+          const vals = filled.map((x) => x[c.k]).filter((v) => v !== null);
+          summary[c.k] = vals.length ? vals[vals.length - 1] : null;
+        }
+      });
+    }
+    return { aero: a, perDate, summary };
   });
-  const colTotals = dates.map((_, i) => ({
-    nm: rows.reduce((t, r) => t + (r.perDate[i] ? r.perDate[i].nm : 0), 0),
-    ld: rows.reduce((t, r) => t + (r.perDate[i] ? r.perDate[i].ld : 0), 0),
-  }));
-  const grand = {
-    nm: rows.reduce((t, r) => t + r.tNm, 0),
-    ld: rows.reduce((t, r) => t + r.tLd, 0),
-  };
+  const colTotals = dates.map((_, i) => {
+    const t = {};
+    COLS.forEach((c) => { t[c.k] = sumOrNull(rows.map((r) => r.perDate[i] ? r.perDate[i][c.k] : null)); });
+    return t;
+  });
+  const grand = {};
+  COLS.forEach((c) => { grand[c.k] = sumOrNull(rows.map((r) => r.summary ? r.summary[c.k] : null)); });
   return { from, to, dates, rows, colTotals, grand };
+}
+
+/* Groups = one per date, plus a period summary when more than one date. */
+function reportGroups(m) {
+  const g = m.dates.map((d, i) => ({
+    label: fmtLong(d), isTotal: false,
+    rowVals: (r) => r.perDate[i], totVals: m.colTotals[i],
+  }));
+  if (m.dates.length > 1) g.push({
+    label: "PERIOD SUMMARY", isTotal: true,
+    rowVals: (r) => r.summary, totVals: m.grand,
+  });
+  return g;
+}
+function groupCells(vals) {
+  return vals ? COLS.map((c) => cellText(vals[c.k])) : COLS.map(() => "—");
 }
 
 function periodText(m) {
@@ -567,12 +707,10 @@ const BORDER = { top: THIN, left: THIN, bottom: THIN, right: THIN };
 const FILL = (argb) => ({ type: "pattern", pattern: "solid", fgColor: { argb } });
 
 async function downloadExcel(m) {
-  const single = m.dates.length === 1;
-  const fixed = ["S NO", "NAME OF ADDL. AERO", "SCHOOL", "PS NUMBER", "MOBILE NUMBER"];
+  const fixed = ["S NO", "NAME OF THE HEARING CENTRE IN-CHARGE", "SCHOOL", "PS NUMBER", "MOBILE NUMBER"];
   const nFixed = fixed.length;
-  const groups = m.dates.map((d) => ({ label: fmtLong(d), isTotal: false }));
-  if (!single) groups.push({ label: "TOTAL OF PERIOD", isTotal: true });
-  const totalCols = nFixed + groups.length * 3;
+  const groups = reportGroups(m);
+  const totalCols = nFixed + groups.length * NC;
 
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet("AERO Report", {
@@ -580,7 +718,6 @@ async function downloadExcel(m) {
     pageSetup: { orientation: "landscape", paperSize: 9, fitToPage: true, fitToWidth: 1, fitToHeight: 0 },
   });
 
-  // Row 1: title, Row 2: period
   ws.mergeCells(1, 1, 1, totalCols);
   ws.getCell(1, 1).value = REPORT_TITLE;
   ws.getCell(1, 1).font = { bold: true, size: 15 };
@@ -592,62 +729,50 @@ async function downloadExcel(m) {
   ws.getCell(2, 1).alignment = { horizontal: "center", vertical: "middle" };
   ws.getRow(2).height = 20;
 
-  // Rows 3-4: headers
-  fixed.forEach((h, i) => {
-    ws.mergeCells(3, i + 1, 4, i + 1);
-    ws.getCell(3, i + 1).value = h;
-  });
+  fixed.forEach((h, i) => { ws.mergeCells(3, i + 1, 4, i + 1); ws.getCell(3, i + 1).value = h; });
   groups.forEach((g, gi) => {
-    const c = nFixed + gi * 3 + 1;
-    ws.mergeCells(3, c, 3, c + 2);
+    const c = nFixed + gi * NC + 1;
+    ws.mergeCells(3, c, 3, c + NC - 1);
     ws.getCell(3, c).value = g.label;
-    ws.getCell(4, c).value = '"NO MAPPING" CASES SENT TO DEO LOGIN';
-    ws.getCell(4, c + 1).value = '"LOGICAL DISCREPANCY" CASES DISPOSED OFF';
-    ws.getCell(4, c + 2).value = "TOTAL";
+    COLS.forEach((col, k) => { ws.getCell(4, c + k).value = col.head; });
   });
   ws.getRow(3).height = 22;
-  ws.getRow(4).height = 58;
+  ws.getRow(4).height = 72;
 
-  // Data rows
   const firstData = 5;
   m.rows.forEach((r, ri) => {
     const rowNum = firstData + ri;
     const a = r.aero;
-    const vals = [a.sno, a.name, a.school, a.ps, a.mobile];
-    r.perDate.forEach((c) => {
-      if (c) vals.push(c.nm, c.ld, c.nm + c.ld);
-      else vals.push("—", "—", "—");
-    });
-    if (!single) vals.push(r.tNm, r.tLd, r.tNm + r.tLd);
+    const vals = [a.sno, `${a.name}, Addl. AERO`, a.school, a.ps, a.mobile];
+    groups.forEach((g) => vals.push(...groupCells(g.rowVals(r))));
     vals.forEach((v, i) => { ws.getCell(rowNum, i + 1).value = v; });
     ws.getRow(rowNum).height = 34;
   });
 
-  // Totals row
   const totRow = firstData + m.rows.length;
   ws.mergeCells(totRow, 1, totRow, nFixed);
   ws.getCell(totRow, 1).value = "GRAND TOTAL";
   const totVals = [];
-  m.colTotals.forEach((t) => totVals.push(t.nm, t.ld, t.nm + t.ld));
-  if (!single) totVals.push(m.grand.nm, m.grand.ld, m.grand.nm + m.grand.ld);
+  groups.forEach((g) => totVals.push(...COLS.map((c) => cellText(g.totVals[c.k]))));
   totVals.forEach((v, i) => { ws.getCell(totRow, nFixed + 1 + i).value = v; });
   ws.getRow(totRow).height = 24;
 
-  // Styling
   for (let r = 3; r <= totRow; r++) {
     for (let c = 1; c <= totalCols; c++) {
       const cell = ws.getCell(r, c);
       cell.border = BORDER;
       const leftAlign = r >= firstData && r < totRow && (c === 2 || c === 3);
       cell.alignment = { horizontal: leftAlign ? "left" : "center", vertical: "middle", wrapText: true };
-      const groupIdx = c > nFixed ? Math.floor((c - nFixed - 1) / 3) : -1;
+      const groupIdx = c > nFixed ? Math.floor((c - nFixed - 1) / NC) : -1;
       const isTotalGroup = groupIdx >= 0 && groups[groupIdx].isTotal;
-      const isTotalSub = c > nFixed && (c - nFixed) % 3 === 0;
+      const colDef = c > nFixed ? COLS[(c - nFixed - 1) % NC] : null;
+      const isTotalSub = colDef && colDef.k === "tot";
 
       if (r === 3 || r === 4) {
-        cell.fill = FILL(r === 3 ? "FF16324F" : "FF2C4A6B");
-        cell.font = { bold: true, color: { argb: "FFFFFFFF" }, size: r === 3 ? 11 : 9 };
-        if (isTotalGroup) cell.fill = FILL(r === 3 ? "FFB5762A" : "FFC98F4A");
+        let fill = r === 3 ? "FF16324F" : (colDef && !colDef.daily ? "FF2F5D50" : "FF2C4A6B");
+        if (isTotalGroup) fill = r === 3 ? "FFB5762A" : "FFC98F4A";
+        cell.fill = FILL(fill);
+        cell.font = { bold: true, color: { argb: "FFFFFFFF" }, size: r === 3 ? 11 : 8.5 };
       } else if (r === totRow) {
         cell.fill = FILL("FFEAE5D7");
         cell.font = { bold: true, size: 12 };
@@ -659,9 +784,15 @@ async function downloadExcel(m) {
     }
   }
 
-  // Column widths
-  [7, 28, 42, 22, 14].forEach((w, i) => { ws.getColumn(i + 1).width = w; });
-  for (let c = nFixed + 1; c <= totalCols; c++) ws.getColumn(c).width = 15;
+  const noteRow = totRow + 2;
+  ws.mergeCells(noteRow, 1, noteRow, totalCols);
+  ws.getCell(noteRow, 1).value = '"—" = not submitted.' + (m.dates.length > 1 ? "   " + SUMMARY_NOTE : "");
+  ws.getCell(noteRow, 1).font = { italic: true, size: 9, color: { argb: "FF5B5A54" } };
+  ws.getCell(noteRow, 1).alignment = { wrapText: true, vertical: "top" };
+  ws.getRow(noteRow).height = 30;
+
+  [7, 30, 40, 22, 14].forEach((w, i) => { ws.getColumn(i + 1).width = w; });
+  for (let c = nFixed + 1; c <= totalCols; c++) ws.getColumn(c).width = 14;
 
   const buf = await wb.xlsx.writeBuffer();
   const blob = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
@@ -679,7 +810,7 @@ function saveBlob(blob, filename) {
 }
 
 /* ---------- PDF (jsPDF + autoTable) ---------- */
-const NAVY_RGB = [22, 50, 79], AMBER_RGB = [181, 118, 42];
+const NAVY_RGB = [22, 50, 79], TEAL_RGB = [47, 93, 80], AMBER_RGB = [181, 118, 42];
 const RED_RGB = [245, 183, 177], LIGHT_AMBER_RGB = [253, 243, 208], FOOT_RGB = [234, 229, 215];
 
 function downloadPdf(m) {
@@ -688,19 +819,15 @@ function downloadPdf(m) {
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const single = m.dates.length === 1;
-  const withSchool = single;          // school column fits only in the one-day report
-  const CHUNK = 4;                    // dates per page-set, so columns stay readable
+  const withSchool = single;           // school column fits only in the one-day report
+  const PER_PAGE = single ? 1 : 2;      // groups (dates / summary) per page-set
+  const allGroups = reportGroups(m);
 
   const chunks = [];
-  for (let i = 0; i < m.dates.length; i += CHUNK) {
-    chunks.push(m.dates.slice(i, i + CHUNK).map((_, k) => i + k));
-  }
+  for (let i = 0; i < allGroups.length; i += PER_PAGE) chunks.push(allGroups.slice(i, i + PER_PAGE));
 
-  chunks.forEach((idxs, ci) => {
+  chunks.forEach((groups, ci) => {
     if (ci > 0) doc.addPage();
-    const isLast = ci === chunks.length - 1;
-    const showTotal = isLast && !single;
-
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
     doc.setTextColor(28, 28, 26);
@@ -710,21 +837,16 @@ function downloadPdf(m) {
     if (chunks.length > 1) sub += `   (Part ${ci + 1} of ${chunks.length})`;
     doc.text(sub, pageWidth / 2, 46, { align: "center" });
 
-    const fixedHead = [
-      { content: "S NO", rowSpan: 2 },
-      { content: "NAME OF ADDL. AERO", rowSpan: 2 },
-    ];
+    const fixedHead = [{ content: "S NO", rowSpan: 2 }, { content: "HEARING CENTRE IN-CHARGE", rowSpan: 2 }];
     if (withSchool) fixedHead.push({ content: "SCHOOL", rowSpan: 2 });
     fixedHead.push({ content: "PS NUMBER", rowSpan: 2 });
     const nFixed = fixedHead.length;
 
     const head1 = [...fixedHead];
     const head2 = [];
-    const groupLabels = idxs.map((i) => fmtLong(m.dates[i]));
-    if (showTotal) groupLabels.push("TOTAL OF PERIOD");
-    groupLabels.forEach((g) => {
-      head1.push({ content: g, colSpan: 3 });
-      head2.push('"NO MAPPING" SENT TO DEO', '"LOGICAL DISCREPANCY" DISPOSED', "TOTAL");
+    groups.forEach((g) => {
+      head1.push({ content: g.label, colSpan: NC });
+      COLS.forEach((c) => head2.push(single ? c.head : c.short));
     });
 
     const body = m.rows.map((r) => {
@@ -732,30 +854,20 @@ function downloadPdf(m) {
       const row = [a.sno, a.name];
       if (withSchool) row.push(a.school);
       row.push(a.ps);
-      idxs.forEach((i) => {
-        const c = r.perDate[i];
-        if (c) row.push(c.nm, c.ld, c.nm + c.ld);
-        else row.push("—", "—", "—");
-      });
-      if (showTotal) row.push(r.tNm, r.tLd, r.tNm + r.tLd);
+      groups.forEach((g) => row.push(...groupCells(g.rowVals(r))));
       return row;
     });
 
     const foot = [{ content: "GRAND TOTAL", colSpan: nFixed, styles: { halign: "center" } }];
-    idxs.forEach((i) => {
-      const t = m.colTotals[i];
-      foot.push(t.nm, t.ld, t.nm + t.ld);
-    });
-    if (showTotal) foot.push(m.grand.nm, m.grand.ld, m.grand.nm + m.grand.ld);
+    groups.forEach((g) => foot.push(...COLS.map((c) => cellText(g.totVals[c.k]))));
 
-    const colStyles = { 0: { cellWidth: 28 }, 1: { cellWidth: 118, halign: "left" } };
+    const colStyles = { 0: { cellWidth: 22 }, 1: { cellWidth: single ? 96 : 104, halign: "left" } };
     if (withSchool) {
-      colStyles[2] = { cellWidth: 190, halign: "left", fontStyle: "normal", fontSize: 8 };
-      colStyles[3] = { cellWidth: 80 };
+      colStyles[2] = { cellWidth: 128, halign: "left", fontStyle: "normal", fontSize: 7 };
+      colStyles[3] = { cellWidth: 62, fontSize: 8 };
     } else {
-      colStyles[2] = { cellWidth: 88 };
+      colStyles[2] = { cellWidth: 66, fontSize: 8 };
     }
-    const totalGroupStart = nFixed + idxs.length * 3;
 
     doc.autoTable({
       head: [head1, head2],
@@ -763,41 +875,47 @@ function downloadPdf(m) {
       foot: [foot],
       startY: 58,
       theme: "grid",
-      margin: { left: 24, right: 24, bottom: 32 },
+      margin: { left: 24, right: 24, bottom: 40 },
       showHead: "everyPage",
       showFoot: "lastPage",
       styles: {
         halign: "center", valign: "middle", fontStyle: "bold", fontSize: 9,
-        lineWidth: 0.5, lineColor: [140, 133, 120], textColor: [28, 28, 26], cellPadding: 4,
+        lineWidth: 0.5, lineColor: [140, 133, 120], textColor: [28, 28, 26], cellPadding: 3.5,
       },
-      headStyles: { fillColor: NAVY_RGB, textColor: [255, 255, 255], fontStyle: "bold", fontSize: 7.5 },
-      footStyles: { fillColor: FOOT_RGB, textColor: [28, 28, 26], fontStyle: "bold", fontSize: 10 },
+      headStyles: { fillColor: NAVY_RGB, textColor: [255, 255, 255], fontStyle: "bold", fontSize: single ? 7 : 6.5 },
+      footStyles: { fillColor: FOOT_RGB, textColor: [28, 28, 26], fontStyle: "bold", fontSize: 9.5 },
       columnStyles: colStyles,
       didParseCell: (data) => {
         const col = data.column.index;
-        const inTotalGroup = showTotal && col >= totalGroupStart;
-        if (data.section === "head" && inTotalGroup) {
-          data.cell.styles.fillColor = AMBER_RGB;
+        if (col < nFixed) {
+          if (data.section === "body" && col === 1) data.cell.styles.fontSize = 8.5;
+          return;
+        }
+        const g = groups[Math.floor((col - nFixed) / NC)];
+        const colDef = COLS[(col - nFixed) % NC];
+        if (data.section === "head") {
+          if (g && g.isTotal) data.cell.styles.fillColor = AMBER_RGB;
+          else if (data.row.index === 1 && !colDef.daily) data.cell.styles.fillColor = TEAL_RGB;
         }
         if (data.section === "body") {
-          if (col >= nFixed) data.cell.styles.fontSize = 10.5;
+          data.cell.styles.fontSize = 10;
           if (data.cell.raw === "—") data.cell.styles.fillColor = RED_RGB;
-          else if (inTotalGroup) data.cell.styles.fillColor = LIGHT_AMBER_RGB;
+          else if (g && g.isTotal) data.cell.styles.fillColor = LIGHT_AMBER_RGB;
         }
       },
     });
   });
 
-  // Footer on every page
   const pages = doc.internal.getNumberOfPages();
   const stamp = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" });
   for (let p = 1; p <= pages; p++) {
     doc.setPage(p);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
+    doc.setFontSize(7.5);
     doc.setTextColor(91, 90, 84);
-    doc.text(`"—" = not submitted   ·   Generated ${stamp}`, 24, pageHeight - 14);
-    doc.text(`Page ${p} of ${pages}`, pageWidth - 24, pageHeight - 14, { align: "right" });
+    if (!single) doc.text(SUMMARY_NOTE, 24, pageHeight - 26, { maxWidth: pageWidth - 48 });
+    doc.text(`"—" = not submitted   ·   Generated ${stamp}`, 24, pageHeight - 12);
+    doc.text(`Page ${p} of ${pages}`, pageWidth - 24, pageHeight - 12, { align: "right" });
   }
 
   doc.save(`ADDL_AERO_REPORT_${fileSuffix(m)}.pdf`);
@@ -813,23 +931,22 @@ async function loadDay() {
 
 $("dayViewBtn").addEventListener("click", (e) => withBusy(e.currentTarget, async () => {
   const r = await loadDay(); if (!r) return;
-  const bySno = Object.fromEntries(r.entries.map((x) => [x.sno, x]));
-  let tNm = 0, tLd = 0;
-  const rowsHtml = AEROS.map((a) => {
-    const x = bySno[a.sno];
-    if (!x) {
-      return `<tr class="missing"><td>${a.sno}</td><td class="l">${esc(a.name)}</td><td>${esc(a.ps)}</td><td colspan="3">Not submitted</td></tr>`;
+  const m = buildMatrix(r.entries.length ? r.entries : [{ date: r.d, sno: 0 }], r.d, r.d);
+  const rowsHtml = m.rows.map((row) => {
+    const a = row.aero, c = row.perDate[0];
+    if (!c) {
+      return `<tr class="missing"><td>${a.sno}</td><td class="l">${esc(a.name)}</td><td>${esc(a.ps)}</td><td colspan="${NC}">Not submitted</td></tr>`;
     }
-    tNm += x.noMapping; tLd += x.logical;
-    return `<tr><td>${a.sno}</td><td class="l">${esc(a.name)}</td><td>${esc(a.ps)}</td>
-      <td class="num">${x.noMapping}</td><td class="num">${x.logical}</td><td class="num">${x.noMapping + x.logical}</td></tr>`;
+    return `<tr><td>${a.sno}</td><td class="l">${esc(a.name)}</td><td>${esc(a.ps)}</td>` +
+      COLS.map((col) => `<td class="num">${esc(cellText(c[col.k]))}</td>`).join("") + "</tr>";
   }).join("");
+  const t = m.colTotals[0];
   adminResults.innerHTML = `
     <div class="admin-summary">${fmtLong(r.d)} — ${r.entries.length} of ${AEROS.length} Addl. AEROs submitted.</div>
     <div class="table-wrap"><table class="results">
-      <thead><tr><th>S NO</th><th>ADDL. AERO</th><th>PS NUMBER</th><th>"NO MAPPING" SENT TO DEO</th><th>"LOGICAL DISCREPANCY" DISPOSED</th><th>TOTAL</th></tr></thead>
+      <thead><tr><th>S NO</th><th>ADDL. AERO</th><th>PS NUMBER</th>${COLS.map((c) => `<th>${esc(c.short)}</th>`).join("")}</tr></thead>
       <tbody>${rowsHtml}</tbody>
-      <tfoot><tr><td colspan="3">GRAND TOTAL</td><td class="num">${tNm}</td><td class="num">${tLd}</td><td class="num">${tNm + tLd}</td></tr></tfoot>
+      <tfoot><tr><td colspan="3">GRAND TOTAL</td>${COLS.map((c) => `<td class="num">${esc(cellText(t[c.k]))}</td>`).join("")}</tr></tfoot>
     </table></div>`;
 }));
 
@@ -889,11 +1006,16 @@ $("rawBtn").addEventListener("click", (e) => withBusy(e.currentTarget, async () 
     { header: '"No Mapping" Sent to DEO', key: "nm", width: 16 },
     { header: '"Logical Discrepancy" Disposed', key: "ld", width: 18 },
     { header: "Total", key: "tot", width: 10 },
+    { header: "Number of Notices Generated", key: "gen", width: 14 },
+    { header: "Notices Delivered to Electors", key: "del", width: 14 },
+    { header: "Documents Collected & Uploaded by BLO", key: "docs", width: 16 },
+    { header: "Hearing Concluded by ERO/AERO/Addl. AERO", key: "hr", width: 16 },
   ];
   entries.forEach((x) => ws.addRow({
     date: x.date.split("-").reverse().join("-"), ts: x.timestamp, sno: x.sno,
     name: x.name, school: x.school, ps: x.ps, mobile: x.mobile,
     nm: x.noMapping, ld: x.logical, tot: x.noMapping + x.logical,
+    gen: cellText(x.generated), del: cellText(x.delivered), docs: cellText(x.docs), hr: cellText(x.hearing),
   }));
   ws.eachRow((row, n) => {
     row.eachCell((cell) => {
