@@ -264,7 +264,7 @@
       </div>
       <div class="btn-grid">
         <button type="button" class="btn" id="dayViewBtn">View on screen</button>
-        <button type="button" class="btn outline" id="dayPendingBtn">Show Pending</button>
+        <button type="button" class="btn outline" id="dayPendingBtn">Show Pending (Today)</button>
         <button type="button" class="btn" id="dayExcelBtn">Download Excel</button>
         <button type="button" class="btn" id="dayPdfBtn">Download PDF</button>
       </div>
@@ -834,18 +834,18 @@ $("dayViewBtn").addEventListener("click", (e) => withBusy(e.currentTarget, async
 }));
 
 $("dayPendingBtn").addEventListener("click", (e) => withBusy(e.currentTarget, async () => {
-  const r = await loadDay(); if (!r) return;
-  const done = new Set(r.entries.map((x) => Number(x.sno)));
+  // Always checks TODAY (IST), regardless of the date picker above.
+  const d = todayISO().iso;
+  const entries = await fetchEntries({ date: d });
+  const done = new Set(entries.map((x) => Number(x.sno)));
   const pending = AEROS.filter((a) => !done.has(a.sno));
   if (pending.length === 0) {
-    adminResults.innerHTML = `<div class="all-done">All ${AEROS.length} Addl. AEROs have submitted for ${fmtLong(r.d)}.</div>`;
+    adminResults.innerHTML = `<div class="all-done">All ${AEROS.length} Addl. AEROs have submitted for today (${fmtLong(d)}).</div>`;
     return;
   }
   adminResults.innerHTML = `
-    <div class="admin-summary">${pending.length} of ${AEROS.length} Addl. AEROs have NOT submitted for ${fmtLong(r.d)}:</div>
-    <ul class="pending-list">${pending.map((a) =>
-      `<li>${a.sno}. ${esc(a.name)} — ${esc(a.mobile)}<span class="range">${esc(a.ps)} · ${esc(a.school)}</span></li>`).join("")}
-    </ul>`;
+    <div class="admin-summary">Pending for today (${fmtLong(d)}): ${pending.length} of ${AEROS.length}</div>
+    <ul class="pending-list">${pending.map((a) => `<li><b>${esc(a.name)}</b></li>`).join("")}</ul>`;
 }));
 
 async function dayReport(kind) {
