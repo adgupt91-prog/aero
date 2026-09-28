@@ -175,7 +175,7 @@
 <header>
   <p class="eyebrow">Special Intensive Revision 2026</p>
   <h1>Addl. AERO Daily Progress Tracker</h1>
-  <p>Daily entry: "No Mapping" / "Logical Discrepancy" cases for today, and hearing centre status (notices, documents, hearings) till today.</p>
+  <p>Daily entry: notices &amp; documents (total till today) and cases hearing concluded today ("No Mapping" + "Logical Discrepancy").</p>
 </header>
 
 <main>
@@ -203,23 +203,7 @@
   </div>
 
   <div id="entrySection" class="hidden">
-    <div class="section-title">TODAY'S FIGURES</div>
-    <div class="card">
-      <div class="field count-field" id="nmField">
-        <label for="nmInput">How many "No Mapping" cases sent to DEO login today?</label>
-        <input type="number" id="nmInput" min="0" step="1" inputmode="numeric" placeholder="Enter number (0 if none)" />
-      </div>
-      <div class="field count-field" id="ldField">
-        <label for="ldInput">How many "Logical Discrepancy" cases disposed off today?</label>
-        <input type="number" id="ldInput" min="0" step="1" inputmode="numeric" placeholder="Enter number (0 if none)" />
-      </div>
-      <div class="today-total">
-        <span>Total for today</span>
-        <b id="todayTotal">0</b>
-      </div>
-    </div>
-
-    <div class="section-title">HEARING CENTRE STATUS (TOTAL TILL TODAY)</div>
+    <div class="section-title">NOTICES &amp; DOCUMENTS (TOTAL TILL TODAY)</div>
     <div class="card">
       <div class="field count-field" id="genField">
         <label for="genInput">Number of notices generated</label>
@@ -236,10 +220,21 @@
         <input type="number" id="docInput" min="0" step="1" inputmode="numeric" placeholder="Enter total till today" />
         <div class="last-saved hidden" id="docLast"></div>
       </div>
-      <div class="field count-field" id="hrField">
-        <label for="hrInput">Number of cases hearing concluded by EROs / AEROs / Addl. AEROs</label>
-        <input type="number" id="hrInput" min="0" step="1" inputmode="numeric" placeholder="Enter total till today" />
-        <div class="last-saved hidden" id="hrLast"></div>
+    </div>
+
+    <div class="section-title">NUMBER OF CASES HEARING CONCLUDED BY EROs / AEROs / ADDL. AEROs (TODAY)</div>
+    <div class="card">
+      <div class="field count-field" id="nmField">
+        <label for="nmInput">How many "No Mapping" cases sent to DEO login today?</label>
+        <input type="number" id="nmInput" min="0" step="1" inputmode="numeric" placeholder="Enter number (0 if none)" />
+      </div>
+      <div class="field count-field" id="ldField">
+        <label for="ldInput">How many "Logical Discrepancy" cases disposed off today?</label>
+        <input type="number" id="ldInput" min="0" step="1" inputmode="numeric" placeholder="Enter number (0 if none)" />
+      </div>
+      <div class="today-total">
+        <span>Hearing concluded today (No Mapping + Logical Discrepancy)</span>
+        <b id="todayTotal">0</b>
       </div>
       <div class="soft-warn hidden" id="softWarn"></div>
     </div>
@@ -255,7 +250,7 @@
 </div>
 
 <footer>
-  "Today's figures" are for today only. "Hearing centre status" figures are the total till today. Data is recorded against today's date automatically. If you save again today, your earlier entry for today is replaced.
+  Notices &amp; documents figures are the total till today. Hearing concluded figures are for today only. Data is recorded against today's date automatically. If you save again today, your earlier entry for today is replaced.
   <button type="button" class="admin-link" id="openAdminBtn">Admin</button>
 </footer>
 
@@ -382,12 +377,11 @@ const todayTotal = document.getElementById("todayTotal");
 const genInput = document.getElementById("genInput");
 const delInput = document.getElementById("delInput");
 const docInput = document.getElementById("docInput");
-const hrInput = document.getElementById("hrInput");
 const softWarn = document.getElementById("softWarn");
 const COUNT_FIELDS = [
   [nmInput, nmField], [ldInput, ldField],
   [genInput, document.getElementById("genField")], [delInput, document.getElementById("delField")],
-  [docInput, document.getElementById("docField")], [hrInput, document.getElementById("hrField")],
+  [docInput, document.getElementById("docField")],
 ];
 let prefillSeq = 0;
 const submitBtn = document.getElementById("submitBtn");
@@ -417,11 +411,10 @@ function refreshForm() {
 
   // Non-blocking sanity checks on the cumulative figures.
   const n = (i) => isCount(i.value) ? Number(i.value) : null;
-  const g = n(genInput), d = n(delInput), dc = n(docInput), hr = n(hrInput);
+  const g = n(genInput), d = n(delInput), dc = n(docInput);
   const warns = [];
   if (g !== null && d !== null && d > g) warns.push("Notices delivered is more than notices generated.");
   if (d !== null && dc !== null && dc > d) warns.push("Documents collected &amp; uploaded is more than notices delivered.");
-  if (dc !== null && hr !== null && hr > dc) warns.push("Hearing concluded is more than documents collected &amp; uploaded.");
   softWarn.innerHTML = warns.length ? "Please re-check: " + warns.join(" ") + " You can still save if the figures are correct." : "";
   softWarn.classList.toggle("hidden", warns.length === 0);
 
@@ -430,7 +423,7 @@ function refreshForm() {
     submitBtn.textContent = "Select your name to continue";
   } else if (!allOk) {
     submitBtn.disabled = true;
-    submitBtn.textContent = "Fill all 6 numbers to continue (0 if none)";
+    submitBtn.textContent = "Fill all 5 numbers to continue (0 if none)";
   } else {
     submitBtn.disabled = false;
     submitBtn.textContent = "Save today's entry";
@@ -448,8 +441,8 @@ aeroSelect.addEventListener("change", () => {
   entrySection.classList.remove("hidden");
   hideBanner();
   genInput.value = a.gen;
-  [delInput, docInput, hrInput].forEach((i) => { i.value = ""; });
-  ["delLast", "docLast", "hrLast"].forEach((id) => document.getElementById(id).classList.add("hidden"));
+  [delInput, docInput].forEach((i) => { i.value = ""; });
+  ["delLast", "docLast"].forEach((id) => document.getElementById(id).classList.add("hidden"));
   refreshForm();
   loadLastSaved(a);
 });
@@ -468,7 +461,7 @@ async function loadLastSaved(a) {
     if (e.generated !== null && e.generated !== undefined && String(genInput.value) === String(a.gen)) {
       genInput.value = e.generated;
     }
-    [["delLast", e.delivered], ["docLast", e.docs], ["hrLast", e.hearing]].forEach(([id, v]) => {
+    [["delLast", e.delivered], ["docLast", e.docs]].forEach(([id, v]) => {
       if (v === null || v === undefined) return;
       const el = document.getElementById(id);
       el.innerHTML = `Last saved (${esc(on)}): <b>${esc(v)}</b>`;
@@ -502,7 +495,7 @@ submitBtn.addEventListener("click", async () => {
     noticesGenerated: Number(genInput.value),
     noticesDelivered: Number(delInput.value),
     docsUploaded: Number(docInput.value),
-    hearingConcluded: Number(hrInput.value),
+    hearingConcluded: Number(nmInput.value) + Number(ldInput.value),
   };
 
   submitBtn.disabled = true;
@@ -546,9 +539,10 @@ function lockFormAfterSubmit(a, savedIsoDate, payload) {
     <div class="submitted-big">SUBMITTED</div>
     <div class="submitted-sub">
       ${esc(a.name)}, Addl. AERO (${esc(a.ps)}) — ${esc(savedDisplay)}<br/>
-      No Mapping sent to DEO: <b>${payload.noMapping}</b> · Logical Discrepancy disposed: <b>${payload.logicalDisposed}</b><br/>
       Notices generated: <b>${payload.noticesGenerated}</b> · Delivered: <b>${payload.noticesDelivered}</b> ·
-      Documents collected &amp; uploaded: <b>${payload.docsUploaded}</b> · Hearing concluded: <b>${payload.hearingConcluded}</b><br/>
+      Documents collected &amp; uploaded: <b>${payload.docsUploaded}</b><br/>
+      Hearing concluded today: <b>${payload.hearingConcluded}</b>
+      (No Mapping sent to DEO: <b>${payload.noMapping}</b> + Logical Discrepancy disposed: <b>${payload.logicalDisposed}</b>)<br/>
       Your entry has been saved. This form is now locked for this session to prevent an accidental duplicate submission.
     </div>`;
   aeroSelect.disabled = true;
@@ -626,16 +620,15 @@ async function withBusy(btn, fn) {
 /* Report columns for each date. "daily" ones are today's counts (summed over
    a period); the rest are cumulative status figures (latest value is used). */
 const COLS = [
-  { k: "nm",   head: '"NO MAPPING" CASES SENT TO DEO LOGIN',          short: '"NO MAPPING" SENT TO DEO',   daily: true },
-  { k: "ld",   head: '"LOGICAL DISCREPANCY" CASES DISPOSED OFF',       short: '"LOGICAL DISCREP." DISPOSED', daily: true },
-  { k: "tot",  head: "TOTAL (NO MAPPING + LOGICAL DISCREPANCY)",       short: "TOTAL",                      daily: true },
-  { k: "gen",  head: "NUMBER OF NOTICES GENERATED",                    short: "NOTICES GENERATED" },
-  { k: "del",  head: "NOTICES DELIVERED TO ELECTORS",                  short: "NOTICES DELIVERED" },
-  { k: "docs", head: "DOCUMENTS COLLECTED & UPLOADED BY BLO",          short: "DOCS COLLECTED & UPLOADED" },
-  { k: "hr",   head: "HEARING CONCLUDED BY ERO / AERO / ADDL. AERO",   short: "HEARING CONCLUDED" },
+  { k: "gen",  head: "NUMBER OF NOTICES GENERATED",                                  short: "NOTICES GENERATED" },
+  { k: "del",  head: "NUMBER OF CASES IN WHICH NOTICES WERE DELIVERED TO ELECTORS",  short: "NOTICES DELIVERED" },
+  { k: "docs", head: "NUMBER OF CASES IN WHICH DOCUMENTS COLLECTED & UPLOADED BY BLO", short: "DOCS COLLECTED & UPLOADED" },
+  { k: "nm",   head: 'HEARING CONCLUDED: "NO MAPPING" CASES SENT TO DEO LOGIN',      short: '"NO MAPPING" SENT TO DEO',    daily: true },
+  { k: "ld",   head: 'HEARING CONCLUDED: "LOGICAL DISCREPANCY" CASES DISPOSED OFF',  short: '"LOGICAL DISCREP." DISPOSED', daily: true },
+  { k: "tot",  head: "NUMBER OF CASES HEARING CONCLUDED BY EROs / AEROs / ADDL. AEROs (TOTAL)", short: "HEARING CONCLUDED (TOTAL)", daily: true },
 ];
 const NC = COLS.length;
-const SUMMARY_NOTE = "Period summary: No Mapping, Logical Discrepancy and Total are added up over the period; Notices Generated, Notices Delivered, Documents Collected & Uploaded and Hearing Concluded show the latest figure reported in the period.";
+const SUMMARY_NOTE = "Period summary: Hearing Concluded (No Mapping + Logical Discrepancy) is added up over the period; Notices Generated, Notices Delivered and Documents Collected & Uploaded show the latest figure reported in the period.";
 
 const nOrNull = (v) => (v === null || v === undefined || v === "") ? null : Number(v);
 const sumOrNull = (vals) => vals.some((v) => v !== null) ? vals.reduce((t, v) => t + (v || 0), 0) : null;
@@ -644,7 +637,7 @@ const cellText = (v) => (v === null || v === undefined) ? "" : v;
 function toCell(e) {
   const nm = Number(e.noMapping) || 0, ld = Number(e.logical) || 0;
   return { nm, ld, tot: nm + ld,
-    gen: nOrNull(e.generated), del: nOrNull(e.delivered), docs: nOrNull(e.docs), hr: nOrNull(e.hearing) };
+    gen: nOrNull(e.generated), del: nOrNull(e.delivered), docs: nOrNull(e.docs) };
 }
 
 /* Builds the AERO x Date matrix used by every report. */
@@ -1005,17 +998,16 @@ $("rawBtn").addEventListener("click", (e) => withBusy(e.currentTarget, async () 
     { header: "Mobile", key: "mobile", width: 14 },
     { header: '"No Mapping" Sent to DEO', key: "nm", width: 16 },
     { header: '"Logical Discrepancy" Disposed', key: "ld", width: 18 },
-    { header: "Total", key: "tot", width: 10 },
+    { header: "Hearing Concluded (Total)", key: "tot", width: 14 },
     { header: "Number of Notices Generated", key: "gen", width: 14 },
     { header: "Notices Delivered to Electors", key: "del", width: 14 },
     { header: "Documents Collected & Uploaded by BLO", key: "docs", width: 16 },
-    { header: "Hearing Concluded by ERO/AERO/Addl. AERO", key: "hr", width: 16 },
   ];
   entries.forEach((x) => ws.addRow({
     date: x.date.split("-").reverse().join("-"), ts: x.timestamp, sno: x.sno,
     name: x.name, school: x.school, ps: x.ps, mobile: x.mobile,
     nm: x.noMapping, ld: x.logical, tot: x.noMapping + x.logical,
-    gen: cellText(x.generated), del: cellText(x.delivered), docs: cellText(x.docs), hr: cellText(x.hearing),
+    gen: cellText(x.generated), del: cellText(x.delivered), docs: cellText(x.docs),
   }));
   ws.eachRow((row, n) => {
     row.eachCell((cell) => {
