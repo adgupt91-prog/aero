@@ -206,17 +206,17 @@
     <div class="section-title">NOTICES &amp; DOCUMENTS (TOTAL TILL TODAY)</div>
     <div class="card">
       <div class="field count-field" id="genField">
-        <label for="genInput">Number of notices generated</label>
+        <label for="genInput">Number of notices generated till today</label>
         <input type="number" id="genInput" min="0" step="1" inputmode="numeric" placeholder="Enter number" />
         <div class="hint">Pre-filled. Change it only if the figure has changed.</div>
       </div>
       <div class="field count-field" id="delField">
-        <label for="delInput">Number of cases in which notices were delivered to electors</label>
+        <label for="delInput">Number of cases in which notices were delivered to electors till today</label>
         <input type="number" id="delInput" min="0" step="1" inputmode="numeric" placeholder="Enter total till today" />
         <div class="last-saved hidden" id="delLast"></div>
       </div>
       <div class="field count-field" id="docField">
-        <label for="docInput">Number of cases in which documents collected &amp; uploaded by BLO</label>
+        <label for="docInput">Number of cases in which documents collected &amp; uploaded by BLO till today</label>
         <input type="number" id="docInput" min="0" step="1" inputmode="numeric" placeholder="Enter total till today" />
         <div class="last-saved hidden" id="docLast"></div>
       </div>
@@ -539,8 +539,8 @@ function lockFormAfterSubmit(a, savedIsoDate, payload) {
     <div class="submitted-big">SUBMITTED</div>
     <div class="submitted-sub">
       ${esc(a.name)}, Addl. AERO (${esc(a.ps)}) — ${esc(savedDisplay)}<br/>
-      Notices generated: <b>${payload.noticesGenerated}</b> · Delivered: <b>${payload.noticesDelivered}</b> ·
-      Documents collected &amp; uploaded: <b>${payload.docsUploaded}</b><br/>
+      Notices generated till today: <b>${payload.noticesGenerated}</b> · Delivered till today: <b>${payload.noticesDelivered}</b> ·
+      Documents collected &amp; uploaded till today: <b>${payload.docsUploaded}</b><br/>
       Hearing concluded today: <b>${payload.hearingConcluded}</b>
       (No Mapping sent to DEO: <b>${payload.noMapping}</b> + Logical Discrepancy disposed: <b>${payload.logicalDisposed}</b>)<br/>
       Your entry has been saved. This form is now locked for this session to prevent an accidental duplicate submission.
@@ -620,9 +620,9 @@ async function withBusy(btn, fn) {
 /* Report columns for each date. "daily" ones are today's counts (summed over
    a period); the rest are cumulative status figures (latest value is used). */
 const COLS = [
-  { k: "gen",  head: "NUMBER OF NOTICES GENERATED",                                  short: "NOTICES GENERATED" },
-  { k: "del",  head: "NUMBER OF CASES IN WHICH NOTICES WERE DELIVERED TO ELECTORS",  short: "NOTICES DELIVERED" },
-  { k: "docs", head: "NUMBER OF CASES IN WHICH DOCUMENTS COLLECTED & UPLOADED BY BLO", short: "DOCS COLLECTED & UPLOADED" },
+  { k: "gen",  head: "NUMBER OF NOTICES GENERATED TILL TODAY",                                  short: "NOTICES GENERATED" },
+  { k: "del",  head: "NUMBER OF CASES IN WHICH NOTICES WERE DELIVERED TO ELECTORS TILL TODAY",  short: "NOTICES DELIVERED" },
+  { k: "docs", head: "NUMBER OF CASES IN WHICH DOCUMENTS COLLECTED & UPLOADED BY BLO TILL TODAY", short: "DOCS COLLECTED & UPLOADED" },
   { k: "nm",   head: 'HEARING CONCLUDED: "NO MAPPING" CASES SENT TO DEO LOGIN',      short: '"NO MAPPING" SENT TO DEO',    daily: true },
   { k: "ld",   head: 'HEARING CONCLUDED: "LOGICAL DISCREPANCY" CASES DISPOSED OFF',  short: '"LOGICAL DISCREP." DISPOSED', daily: true },
   { k: "tot",  head: "NUMBER OF CASES HEARING CONCLUDED BY EROs / AEROs / ADDL. AEROs (TOTAL)", short: "HEARING CONCLUDED (TOTAL)", daily: true },
@@ -999,9 +999,9 @@ $("rawBtn").addEventListener("click", (e) => withBusy(e.currentTarget, async () 
     { header: '"No Mapping" Sent to DEO', key: "nm", width: 16 },
     { header: '"Logical Discrepancy" Disposed', key: "ld", width: 18 },
     { header: "Hearing Concluded (Total)", key: "tot", width: 14 },
-    { header: "Number of Notices Generated", key: "gen", width: 14 },
-    { header: "Notices Delivered to Electors", key: "del", width: 14 },
-    { header: "Documents Collected & Uploaded by BLO", key: "docs", width: 16 },
+    { header: "Number of Notices Generated till today", key: "gen", width: 14 },
+    { header: "Notices Delivered to Electors till today", key: "del", width: 14 },
+    { header: "Documents Collected & Uploaded by BLO till today", key: "docs", width: 16 },
   ];
   entries.forEach((x) => ws.addRow({
     date: x.date.split("-").reverse().join("-"), ts: x.timestamp, sno: x.sno,
