@@ -505,8 +505,11 @@ submitBtn.addEventListener("click", async () => {
   hideBanner();
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 20000);
+  // Apps Script can be slow to wake up (10-30 s), so allow up to 60 s.
+  const timeoutId = setTimeout(() => controller.abort(), 60000);
+  const slowId = setTimeout(() => { submitBtn.textContent = "Still saving… please wait, do not close"; }, 8000);
 
+  let serverError = null;
   try {
     const res = await fetch(SCRIPT_URL, {
       method: "POST",
@@ -514,24 +517,47 @@ submitBtn.addEventListener("click", async () => {
       body: JSON.stringify(payload),
       signal: controller.signal,
     });
-    clearTimeout(timeoutId);
     const data = await res.json();
     if (data && data.ok) {
+      clearTimeout(timeoutId); clearTimeout(slowId);
       lockFormAfterSubmit(a, data.date, payload);
-    } else {
-      throw new Error((data && data.error) || "Unknown error");
+      return;
     }
-  } catch (err) {
-    clearTimeout(timeoutId);
-    if (err && err.name === "AbortError") {
-      showBanner("error", "This is taking longer than expected. It may have already saved — check with the administrator if unsure — or try again.");
-    } else {
-      showBanner("error", "Could not save. Check your internet connection and try again. If this keeps happening, contact the administrator.");
-    }
-    submitBtn.textContent = "Retry save";
-    submitBtn.disabled = false;
+    serverError = (data && data.error) || "Unknown error";
+  } catch (err) { /* timeout or network drop — check below whether it saved anyway */ }
+  clearTimeout(timeoutId); clearTimeout(slowId);
+
+  if (serverError) {
+    showBanner("error", "Could not save: " + serverError);
+  } else {
+    // The request may have reached the sheet even though the reply never came back.
+    submitBtn.textContent = "Checking if it was saved…";
+    const saved = await wasSaved(payload);
+    if (saved) { lockFormAfterSubmit(a, saved.date, payload); return; }
+    showBanner("error", "Could not confirm the save (slow or no internet). Please press the button again.");
   }
+  submitBtn.textContent = "Retry save";
+  submitBtn.disabled = false;
 });
+
+/* After a timeout: look for today's row for this AERO with exactly these figures. */
+async function wasSaved(payload) {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 30000);
+      const res = await fetch(SCRIPT_URL + "?date=" + todayISO().iso, { signal: ctrl.signal });
+      clearTimeout(t);
+      const data = await res.json();
+      const e = (data.entries || []).find((x) => Number(x.sno) === payload.sno);
+      if (e && e.noMapping === payload.noMapping && e.logical === payload.logicalDisposed &&
+          e.generated === payload.noticesGenerated && e.delivered === payload.noticesDelivered &&
+          e.docs === payload.docsUploaded) return e;
+      if (data.ok) return null;
+    } catch (err) { /* try once more */ }
+  }
+  return null;
+}
 
 function lockFormAfterSubmit(a, savedIsoDate, payload) {
   const savedDisplay = savedIsoDate ? savedIsoDate.split("-").reverse().join("-") : today.display;
